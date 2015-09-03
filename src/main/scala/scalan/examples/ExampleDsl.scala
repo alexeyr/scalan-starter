@@ -1,12 +1,12 @@
 package scalan.examples
 
-import scalan.{ScalanCommunityDsl, ScalanCommunityDslSeq, ScalanCommunityDslExp}
+import scalan.{ScalanDsl, ScalanCtxSeq, ScalanCtxExp}
 
 /**
  * Created by Viktor Smirnov on 29.03.15.
  */
-trait ExampleDsl extends ScalanCommunityDsl with MyArraysDsl
+trait ExampleDsl extends ScalanDsl with MatricesDsl
 
-trait ExampleDslSeq extends ExampleDsl with MyArraysDslSeq with ScalanCommunityDslSeq
+trait ExampleDslSeq extends ExampleDsl with MatricesDslSeq with ScalanCtxSeq
 
-trait ExampleDslExp extends ExampleDsl with MyArraysDslExp with ScalanCommunityDslExp
+trait ExampleDslExp extends ExampleDsl with MatricesDslExp with ScalanCtxExp

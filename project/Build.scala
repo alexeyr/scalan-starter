@@ -6,8 +6,7 @@ object Build extends Build {
     //"org.scalaz.stream" %% "scalaz-stream" % "0.6a",
     //"junit" % "junit" % "4.11" % "test",
     //("com.novocode" % "junit-interface" % "0.11" % "test").exclude("junit", "junit-dep").exclude("org.scala-tools.testing", "test-interface"),
-    "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.11.5" % "test")
+    "org.scalatest" %% "scalatest" % "2.2.5" % "test")
 
   val testSettings = inConfig(ItTest)(Defaults.testTasks /*++ baseAssemblySettings*/) ++ Seq(
     testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a", "-s"), Tests.Filter(unitFilter)),
@@ -22,7 +21,8 @@ object Build extends Build {
 
   val buildSettings = Seq(
     organization := "com.huawei.scalan",
-    scalaVersion := "2.10.4",
+	  scalaOrganization := "org.scala-lang.virtualized",
+    scalaVersion := "2.11.2",
     scalacOptions ++= Seq(
       "-unchecked", "-deprecation",
       "-feature",
@@ -58,9 +58,9 @@ object Build extends Build {
       p.configs(ItTest).settings(commonSettings: _*)
   }
 
-  def liteProject(name: String) = ProjectRef(file("../scalan-ce"), name)
+  //def liteProject(name: String) = ProjectRef(file("../scalan"), name)
 
-  def liteDependency(name: String) = "com.huawei.scalan" %% name % "0.2.7-SNAPSHOT"
+  def liteDependency(name: String) = "com.huawei.scalan" %% ("scalan-" + name) % "0.2.10-SNAPSHOT"
 
   lazy val metaDeps = liteDependency("meta")
   lazy val meta = Project(
@@ -70,12 +70,13 @@ object Build extends Build {
 
   lazy val core = liteDependency("core")
   lazy val common = liteDependency("common")
-  lazy val community = liteDependency("community-edition")
+  lazy val community = liteDependency("library")
+  lazy val lms = liteDependency("lms-backend")
   lazy val ml_study = Project(
     id = "scalan-starter",
     base = file(".")).addTestConfigsAndCommonSettings.
     settings(libraryDependencies ++= Seq(core, common, common % "test" classifier "tests",
-                                         community, core % "test" classifier "tests"))
+                                         community, core % "test" classifier "tests", lms))
 
   def itFilter(name: String): Boolean =
     name endsWith "ItTests"

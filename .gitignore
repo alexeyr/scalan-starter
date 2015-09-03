@@ -3,6 +3,7 @@
 
 # Scalan specific
 test-out
+it-out
 
 # sbt specific
 .cache/

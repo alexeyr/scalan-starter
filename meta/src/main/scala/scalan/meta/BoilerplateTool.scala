@@ -1,15 +1,16 @@
 package scalan.meta
 
 object StarterBoilerplateTool extends BoilerplateTool {
-  val starterTypeSynonims = Map(
-    "MyArr" -> "MyArray"
-    // declare your type synonims for User Defined types here (see type PA[A] = Rep[PArray[A]])
+  val starterTypeSynonyms = Map(
+    "RVector" -> "Vector",
+    "RMatrix" -> "Matrix"
   )
   lazy val starterConfig = CodegenConfig(
-    name = "ml",
+    name = "starter",
     srcPath = "src/main/scala",
     entityFiles = List(
-      "scalan/examples/MyArrays.scala"
+      "scalan/examples/Vectors.scala",
+      "scalan/examples/Matrices.scala"
     ),
     baseContextTrait = "Scalan",
     seqContextTrait = "ScalanSeq",
@@ -17,7 +18,7 @@ object StarterBoilerplateTool extends BoilerplateTool {
     extraImports = List(
       "scala.reflect.runtime.universe._",
       "scalan.common.Default"),
-    starterTypeSynonims
+    entityTypeSynonyms = starterTypeSynonyms
   )
 
   override def getConfigs(args: Array[String]) = Seq(starterConfig)
