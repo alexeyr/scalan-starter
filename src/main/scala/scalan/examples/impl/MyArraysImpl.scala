@@ -17,24 +17,32 @@ trait MyArraysAbs extends Scalan with MyArrays {
   }
 
   abstract class MyArrayElem[A, From, To <: MyArray[A]](iso: Iso[From, To])(implicit elem: Elem[A])
-    extends ViewElem[From, To](iso) {
-    override def convert(x: Rep[Reifiable[_]]) = convertMyArray(x.asRep[MyArray[A]])
+    extends EntityElem[To] { //extends ViewElem[From, To](iso) {
+    override def convert(x: Rep[Def[_]]) = convertMyArray(x.asRep[MyArray[A]])
     def convertMyArray(x : Rep[MyArray[A]]): Rep[To]
   }
 
-  trait MyArrayCompanionElem extends CompanionElem[MyArrayCompanionAbs]
-  implicit lazy val MyArrayCompanionElem: MyArrayCompanionElem = new MyArrayCompanionElem {
+  implicit case object MyArrayCompanionElem extends CompanionElem[MyArrayCompanionAbs] {
     lazy val tag = weakTypeTag[MyArrayCompanionAbs]
     protected def getDefaultRep = MyArray
   }
 
-  abstract class MyArrayCompanionAbs extends CompanionBase[MyArrayCompanionAbs] with MyArrayCompanion {
+  abstract class MyArrayCompanionAbs extends CompanionDef[MyArrayCompanionAbs] with MyArrayCompanion {
+    def selfType = MyArrayCompanionElem
     override def toString = "MyArray"
   }
+
   def MyArray: Rep[MyArrayCompanionAbs]
   implicit def proxyMyArrayCompanion(p: Rep[MyArrayCompanion]): MyArrayCompanion = {
     proxyOps[MyArrayCompanion](p)
   }
+
+  abstract class AbsBaseMyArray[A]
+    (override val values: Rep[Collection[A]])
+    (implicit eA: Elem[A])
+    extends BaseMyArray[A](values) with Def[BaseMyArray[A]] {
+    lazy val selfType = element[BaseMyArray[A]]
+  }  
 
   // elem for concrete class
   class BaseMyArrayElem[A](iso: Iso[BaseMyArrayData[A], BaseMyArray[A]])(implicit val eA: Elem[A])
@@ -64,7 +72,13 @@ trait MyArraysAbs extends Scalan with MyArrays {
     lazy val eTo = new BaseMyArrayElem[A](this)
   }
   // 4) constructor and deconstructor
-  abstract class BaseMyArrayCompanionAbs extends CompanionBase[BaseMyArrayCompanionAbs] with BaseMyArrayCompanion {
+  implicit case object BaseMyArrayCompanionElem extends CompanionElem[BaseMyArrayCompanionAbs] {
+    lazy val tag = weakTypeTag[BaseMyArrayCompanionAbs]
+    protected def getDefaultRep = BaseMyArray
+  }
+
+  abstract class BaseMyArrayCompanionAbs extends CompanionDef[BaseMyArrayCompanionAbs] with BaseMyArrayCompanion {
+    def selfType = BaseMyArrayCompanionElem
     override def toString = "BaseMyArray"
 
     def apply[A](values: Rep[Collection[A]])(implicit eA: Elem[A]): Rep[BaseMyArray[A]] =
@@ -75,12 +89,6 @@ trait MyArraysAbs extends Scalan with MyArrays {
   implicit def proxyBaseMyArrayCompanion(p: Rep[BaseMyArrayCompanionAbs]): BaseMyArrayCompanionAbs = {
     proxyOps[BaseMyArrayCompanionAbs](p)
   }
-
-  class BaseMyArrayCompanionElem extends CompanionElem[BaseMyArrayCompanionAbs] {
-    lazy val tag = weakTypeTag[BaseMyArrayCompanionAbs]
-    protected def getDefaultRep = BaseMyArray
-  }
-  implicit lazy val BaseMyArrayCompanionElem: BaseMyArrayCompanionElem = new BaseMyArrayCompanionElem
 
   implicit def proxyBaseMyArray[A](p: Rep[BaseMyArray[A]]): BaseMyArray[A] =
     proxyOps[BaseMyArray[A]](p)
@@ -101,6 +109,13 @@ trait MyArraysAbs extends Scalan with MyArrays {
   class PairMyArrayElem[A, B](iso: Iso[PairMyArrayData[A, B], PairMyArray[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
     extends MyArrayElem[(A,B), PairMyArrayData[A, B], PairMyArray[A, B]](iso) {
     def convertMyArray(x: Rep[MyArray[(A,B)]]) = PairMyArray(x.values)
+  }
+
+  abstract class AbsPairMyArray[A, B]
+      (override val values: Rep[Collection[(A,B)]])
+      (implicit eA: Elem[A], eB: Elem[B])
+    extends PairMyArray[A, B](values) with Def[PairMyArray[A, B]] {
+    lazy val selfType = element[PairMyArray[A, B]].asInstanceOf[Elem[MyArray[(A,B)]]]
   }
 
   // state representation type
@@ -125,7 +140,13 @@ trait MyArraysAbs extends Scalan with MyArrays {
     lazy val eTo = new PairMyArrayElem[A, B](this)
   }
   // 4) constructor and deconstructor
-  abstract class PairMyArrayCompanionAbs extends CompanionBase[PairMyArrayCompanionAbs] with PairMyArrayCompanion {
+  implicit case object PairMyArrayCompanionElem extends CompanionElem[PairMyArrayCompanionAbs] {
+    lazy val tag = weakTypeTag[PairMyArrayCompanionAbs]
+    protected def getDefaultRep = PairMyArray
+  }
+  
+  abstract class PairMyArrayCompanionAbs extends CompanionDef[PairMyArrayCompanionAbs] with PairMyArrayCompanion {
+    def selfType = PairMyArrayCompanionElem
     override def toString = "PairMyArray"
 
     def apply[A, B](values: Rep[Collection[(A,B)]])(implicit eA: Elem[A], eB: Elem[B]): Rep[PairMyArray[A, B]] =
@@ -136,12 +157,6 @@ trait MyArraysAbs extends Scalan with MyArrays {
   implicit def proxyPairMyArrayCompanion(p: Rep[PairMyArrayCompanionAbs]): PairMyArrayCompanionAbs = {
     proxyOps[PairMyArrayCompanionAbs](p)
   }
-
-  class PairMyArrayCompanionElem extends CompanionElem[PairMyArrayCompanionAbs] {
-    lazy val tag = weakTypeTag[PairMyArrayCompanionAbs]
-    protected def getDefaultRep = PairMyArray
-  }
-  implicit lazy val PairMyArrayCompanionElem: PairMyArrayCompanionElem = new PairMyArrayCompanionElem
 
   implicit def proxyPairMyArray[A, B](p: Rep[PairMyArray[A, B]]): PairMyArray[A, B] =
     proxyOps[PairMyArray[A, B]](p)
@@ -162,20 +177,15 @@ trait MyArraysAbs extends Scalan with MyArrays {
 // Seq -----------------------------------
 trait MyArraysSeq extends MyArraysDsl with ScalanSeq {
   self: ExampleDslSeq =>
-  lazy val MyArray: Rep[MyArrayCompanionAbs] = new MyArrayCompanionAbs with UserTypeSeq[MyArrayCompanionAbs, MyArrayCompanionAbs] {
-    lazy val selfType = element[MyArrayCompanionAbs]
-  }
+  lazy val MyArray: Rep[MyArrayCompanionAbs] = new MyArrayCompanionAbs{}
 
   case class SeqBaseMyArray[A]
       (override val values: Rep[Collection[A]])
       (implicit eA: Elem[A])
-    extends BaseMyArray[A](values)
-        with UserTypeSeq[MyArray[A], BaseMyArray[A]] {
+    extends BaseMyArray[A](values) {
     lazy val selfType = element[BaseMyArray[A]].asInstanceOf[Elem[MyArray[A]]]
   }
-  lazy val BaseMyArray = new BaseMyArrayCompanionAbs with UserTypeSeq[BaseMyArrayCompanionAbs, BaseMyArrayCompanionAbs] {
-    lazy val selfType = element[BaseMyArrayCompanionAbs]
-  }
+  lazy val BaseMyArray = new BaseMyArrayCompanionAbs {}
 
   def mkBaseMyArray[A]
       (values: Rep[Collection[A]])(implicit eA: Elem[A]): Rep[BaseMyArray[A]] =
@@ -186,13 +196,10 @@ trait MyArraysSeq extends MyArraysDsl with ScalanSeq {
   case class SeqPairMyArray[A, B]
       (override val values: Rep[Collection[(A,B)]])
       (implicit eA: Elem[A], eB: Elem[B])
-    extends PairMyArray[A, B](values)
-        with UserTypeSeq[MyArray[(A,B)], PairMyArray[A, B]] {
+    extends PairMyArray[A, B](values) {
     lazy val selfType = element[PairMyArray[A, B]].asInstanceOf[Elem[MyArray[(A,B)]]]
   }
-  lazy val PairMyArray = new PairMyArrayCompanionAbs with UserTypeSeq[PairMyArrayCompanionAbs, PairMyArrayCompanionAbs] {
-    lazy val selfType = element[PairMyArrayCompanionAbs]
-  }
+  lazy val PairMyArray = new PairMyArrayCompanionAbs{}
 
   def mkPairMyArray[A, B]
       (values: Rep[Collection[(A,B)]])(implicit eA: Elem[A], eB: Elem[B]): Rep[PairMyArray[A, B]] =
@@ -204,24 +211,24 @@ trait MyArraysSeq extends MyArraysDsl with ScalanSeq {
 // Exp -----------------------------------
 trait MyArraysExp extends MyArraysDsl with ScalanExp {
   self: ExampleDslExp =>
-  lazy val MyArray: Rep[MyArrayCompanionAbs] = new MyArrayCompanionAbs with UserTypeDef[MyArrayCompanionAbs, MyArrayCompanionAbs] {
-    lazy val selfType = element[MyArrayCompanionAbs]
-    override def mirror(t: Transformer) = this
+  lazy val MyArray: Rep[MyArrayCompanionAbs] = new MyArrayCompanionAbs {}
+
+/*
+  case class ExpBaseMyArray[A]
+      (override val values: Rep[Collection[A]])
+      (implicit eA: Elem[A])
+    extends BaseMyArray[A](values) {
+    lazy val selfType = element[BaseMyArray[A]].asInstanceOf[Elem[MyArray[A]]]
+    override def mirror(t: Transformer) = ExpBaseMyArray[A](t(values))
   }
+*/
 
   case class ExpBaseMyArray[A]
       (override val values: Rep[Collection[A]])
       (implicit eA: Elem[A])
-    extends BaseMyArray[A](values) with UserTypeDef[MyArray[A], BaseMyArray[A]] {
-    lazy val selfType = element[BaseMyArray[A]].asInstanceOf[Elem[MyArray[A]]]
-    override def mirror(t: Transformer) = ExpBaseMyArray[A](t(values))
-  }
+    extends AbsBaseMyArray[A](values)(eA) {}
 
-  lazy val BaseMyArray: Rep[BaseMyArrayCompanionAbs] = new BaseMyArrayCompanionAbs with UserTypeDef[BaseMyArrayCompanionAbs, BaseMyArrayCompanionAbs] {
-    lazy val selfType = element[BaseMyArrayCompanionAbs]
-    override def mirror(t: Transformer) = this
-  }
-
+  lazy val BaseMyArray: Rep[BaseMyArrayCompanionAbs] = new BaseMyArrayCompanionAbs{}
   object BaseMyArrayMethods {
     object elem {
       def unapply(d: Def[_]): Option[Rep[BaseMyArray[A]] forSome {type A}] = d match {
@@ -263,7 +270,7 @@ trait MyArraysExp extends MyArraysDsl with ScalanExp {
   object BaseMyArrayCompanionMethods {
     object defaultOf {
       def unapply(d: Def[_]): Option[Elem[A] forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(ea, _*), _) if receiver.elem.isInstanceOf[BaseMyArrayCompanionElem] && method.getName == "defaultOf" =>
+        case MethodCall(receiver, method, Seq(ea, _*), _) if receiver.elem.isInstanceOf[MyArrayElem[_,_,_]] && method.getName == "defaultOf" =>
           Some(ea).asInstanceOf[Option[Elem[A] forSome {type A}]]
         case _ => None
       }
@@ -279,19 +286,21 @@ trait MyArraysExp extends MyArraysDsl with ScalanExp {
     new ExpBaseMyArray[A](values)
   def unmkBaseMyArray[A:Elem](p: Rep[BaseMyArray[A]]) =
     Some((p.values))
-
+/*
   case class ExpPairMyArray[A, B]
       (override val values: Rep[Collection[(A,B)]])
       (implicit eA: Elem[A], eB: Elem[B])
-    extends PairMyArray[A, B](values) with UserTypeDef[MyArray[(A,B)], PairMyArray[A, B]] {
+    extends PairMyArray[A, B](values) {
     lazy val selfType = element[PairMyArray[A, B]].asInstanceOf[Elem[MyArray[(A,B)]]]
     override def mirror(t: Transformer) = ExpPairMyArray[A, B](t(values))
   }
+*/
+  case class ExpPairMyArray[A, B]
+      (override val values: Rep[Collection[(A,B)]])
+      (implicit eA: Elem[A], eB: Elem[B])
+    extends AbsPairMyArray[A, B](values)(eA, eB) {}
 
-  lazy val PairMyArray: Rep[PairMyArrayCompanionAbs] = new PairMyArrayCompanionAbs with UserTypeDef[PairMyArrayCompanionAbs, PairMyArrayCompanionAbs] {
-    lazy val selfType = element[PairMyArrayCompanionAbs]
-    override def mirror(t: Transformer) = this
-  }
+  lazy val PairMyArray: Rep[PairMyArrayCompanionAbs] = new PairMyArrayCompanionAbs {}
 
   object PairMyArrayMethods {
     object arr {
@@ -358,7 +367,7 @@ trait MyArraysExp extends MyArraysDsl with ScalanExp {
   object PairMyArrayCompanionMethods {
     object defaultOf {
       def unapply(d: Def[_]): Option[(Elem[A], Elem[B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(ea, eb, _*), _) if receiver.elem.isInstanceOf[PairMyArrayCompanionElem] && method.getName == "defaultOf" =>
+        case MethodCall(receiver, method, Seq(ea, eb, _*), _) if receiver.elem.isInstanceOf[PairMyArray[_,_]] && method.getName == "defaultOf" =>
           Some((ea, eb)).asInstanceOf[Option[(Elem[A], Elem[B]) forSome {type A; type B}]]
         case _ => None
       }
@@ -446,7 +455,7 @@ trait MyArraysExp extends MyArraysDsl with ScalanExp {
 
     object apply {
       def unapply(d: Def[_]): Option[Rep[Collection[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[MyArrayCompanionElem] && method.getName == "apply" =>
+        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[MyArray[_]] && method.getName == "apply" =>
           Some(arr).asInstanceOf[Option[Rep[Collection[A]] forSome {type A}]]
         case _ => None
       }
@@ -458,7 +467,7 @@ trait MyArraysExp extends MyArraysDsl with ScalanExp {
 
     object fromArray {
       def unapply(d: Def[_]): Option[Rep[Collection[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[MyArrayCompanionElem] && method.getName == "fromArray" =>
+        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[MyArray[_]] && method.getName == "fromArray" =>
           Some(arr).asInstanceOf[Option[Rep[Collection[A]] forSome {type A}]]
         case _ => None
       }
@@ -470,7 +479,7 @@ trait MyArraysExp extends MyArraysDsl with ScalanExp {
 
     object replicate {
       def unapply(d: Def[_]): Option[(Rep[Int], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(len, v, _*), _) if receiver.elem.isInstanceOf[MyArrayCompanionElem] && method.getName == "replicate" =>
+        case MethodCall(receiver, method, Seq(len, v, _*), _) if receiver.elem.isInstanceOf[MyArray[_]] && method.getName == "replicate" =>
           Some((len, v)).asInstanceOf[Option[(Rep[Int], Rep[A]) forSome {type A}]]
         case _ => None
       }

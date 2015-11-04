@@ -14,7 +14,7 @@ trait MyArrays { self: ExampleDsl =>
   /**
    * User defined type
    */
-  trait MyArray[A] extends Reifiable[MyArray[A]] {
+  trait MyArray[A] extends Def[MyArray[A]] {
     implicit def elem: Elem[A]
     def length: Rep[Int]
     def values: Rep[Collection[A]]
@@ -149,7 +149,7 @@ trait MyArrays { self: ExampleDsl =>
   }*/
 
   trait BaseMyArrayCompanion extends ConcreteClass1[BaseMyArray] {
-    def defaultOf[A](implicit ea: Elem[A]) = BaseMyArray.defaultOf[A]
+    def defaultOf[A](implicit ea: Elem[A]): Default[Rep[MyArray[A]]] = BaseMyArray.defaultOf[A]
       //Default.defaultVal(BaseMyArray(Default.defaultOf[Rep[Collection[A]]]))
     //def defaultOf[A: Elem] = DenseVector.defaultOf[A]
   }
