@@ -1,7 +1,7 @@
 package scalan.meta
 
 object StarterBoilerplateTool extends BoilerplateTool {
-  val starterTypeSynonims = Map(
+  val starterTypeSynonyms = Map(
     "MyArr" -> "MyArray"
     // declare your type synonims for User Defined types here (see type PA[A] = Rep[PArray[A]])
   )
@@ -11,13 +11,14 @@ object StarterBoilerplateTool extends BoilerplateTool {
     entityFiles = List(
       "scalan/examples/MyArrays.scala"
     ),
+    entityTypeSynonyms = starterTypeSynonyms,
     baseContextTrait = "Scalan",
     seqContextTrait = "ScalanSeq",
     stagedContextTrait = "ScalanExp",
     extraImports = List(
       "scala.reflect.runtime.universe._",
       "scalan.common.Default"),
-    starterTypeSynonims
+    isAlreadyRep = true
   )
 
   override def getConfigs(args: Array[String]) = Seq(starterConfig)

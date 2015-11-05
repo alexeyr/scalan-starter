@@ -168,8 +168,8 @@ trait MyArrays { self: ExampleDsl =>
   }
 }
 
-trait MyArraysDsl extends impl.MyArraysAbs with MyArrays { self: ExampleDsl => }
+trait MyArraysDsl extends impl.MyArraysAbs { self: ExampleDsl => }
 
-trait MyArraysDslSeq extends MyArraysDsl with impl.MyArraysSeq with ScalanSeq { self: ExampleDslSeq => }
+trait MyArraysDslSeq extends impl.MyArraysSeq { self: ExampleDslSeq => }
 
-trait MyArraysDslExp extends MyArraysDsl with impl.MyArraysExp with ScalanExp { self: ExampleDslExp => }
+trait MyArraysDslExp extends impl.MyArraysExp { self: ExampleDslExp => }

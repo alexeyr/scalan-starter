@@ -7,6 +7,6 @@ import scalan.{ScalanCommunityDsl, ScalanCommunityDslSeq, ScalanCommunityDslExp}
  */
 trait ExampleDsl extends ScalanCommunityDsl with MyArraysDsl
 
-trait ExampleDslSeq extends ExampleDsl with MyArraysDslSeq with ScalanCommunityDslSeq
+trait ExampleDslSeq extends ScalanCommunityDslSeq with ExampleDsl with MyArraysDslSeq
 
-trait ExampleDslExp extends ExampleDsl with MyArraysDslExp with ScalanCommunityDslExp
+trait ExampleDslExp extends ScalanCommunityDslExp with ExampleDsl with MyArraysDslExp

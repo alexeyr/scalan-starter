@@ -37,20 +37,21 @@ object Build extends Build {
 
   def liteDependency(name: String) = "com.huawei.scalan" %% name % "0.2.11-SNAPSHOT"
 
-  lazy val metaDeps = liteDependency("meta")
+  lazy val metaDeps = liteDependency("scalan-meta")
   lazy val meta = Project(
     id = "starter-meta",
     base = file("meta")).addTestConfigsAndCommonSettings.
     settings(libraryDependencies ++= Seq(metaDeps))
 
-  lazy val core = liteDependency("scalan-library")
+  lazy val library = liteDependency("scalan-library")
   lazy val common = liteDependency("scalan-common")
-  lazy val community = liteDependency("scalan")
+  lazy val core = liteDependency("scalan-core")
   lazy val ml_study = Project(
     id = "scalan-starter",
     base = file(".")).addTestConfigsAndCommonSettings.
-    settings(libraryDependencies ++= Seq(core, common, common % "test" classifier "tests",
-                                         community, core % "test" classifier "tests"))
+    settings(libraryDependencies ++= Seq(library, library % "test" classifier "tests",
+      common, common % "test" classifier "tests",
+      core, core % "test" classifier "tests"))
 
   def itFilter(name: String): Boolean =
     name endsWith "ItTests"

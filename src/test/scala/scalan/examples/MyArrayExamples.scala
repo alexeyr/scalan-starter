@@ -6,7 +6,7 @@ trait MyArrayExamples extends ExampleDsl with PrimitiveExamples {
   lazy val fromArray = fun { xs: Arr[Int] => MyArray(Collection(xs)) }
   lazy val fromArrayOfPairs = fun { xs: Arr[(Int,Float)] => MyArray(Collection(xs)) }
   lazy val fromAndTo = fun { xs: Arr[(Int,Float)] =>
-    val ps = MyArray(CollectionOfPairs(xs).convertTo[Collection[(Int,Float)]])
+    val ps = MyArray(PairCollectionAOS(CollectionOverArray(xs)).convertTo[Collection[(Int,Float)]])
     val arr = ps.values.convertTo[PairCollection[Int,Float]].arr
     arr//(arr.map(_._1), arr.map(_._2))
   }
