@@ -6,3 +6,4 @@ In order to build scalan-starter first you need:
 `scalan-develop` branch of https://github.com/scalan/virtualization-lms-core.
  - clone, build and `publishLocal` https://github.com/scalan/scalan-ce
 
+   
